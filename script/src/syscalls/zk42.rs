@@ -81,8 +81,8 @@ impl<Mac: SupportMachine> Syscalls<Mac> for Zk42 {
 
     fn ecall(&mut self, machine: &mut Mac) -> Result<bool, VMError> {
         let code = machine.registers()[A7].to_u64();
-        if code == zk42code {
-            return Ok(true);
+        if code != zk42code {
+            return Ok(false);
         }
 
         // input_hash_addr output_hash_addr proof proof_size
@@ -91,12 +91,18 @@ impl<Mac: SupportMachine> Syscalls<Mac> for Zk42 {
         let proof_addr = machine.registers()[ckb_vm::registers::A2].to_u64();
         let proof_size = machine.registers()[ckb_vm::registers::A3].to_u64();
 
-        let input_hash = get_arr(machine, input_hash_addr, 256)?;
-        let output_hash = get_arr(machine, output_hash_addr, 256)?;
+        println!("{:?} {:?} {:?} {:?}", input_hash_addr, output_hash_addr, proof_addr, proof_size);
+
+        let input_hash = get_arr(machine, input_hash_addr, 32)?;
+        println!("{:?}", input_hash);
+        let output_hash = get_arr(machine, output_hash_addr, 32)?;
+        println!("{:?}", output_hash);
         let proof = get_arr(machine, proof_addr, proof_size)?;
+        println!("{:?}", proof);
 
         let a = hash_to_bits(input_hash);
         let b = hash_to_bits(output_hash);
+        println!("{:?} {:?}", a, b);
 
         let public_data = PublicData {
             input_amount_hash: a,
@@ -105,15 +111,20 @@ impl<Mac: SupportMachine> Syscalls<Mac> for Zk42 {
         let j = serde_json::to_string(&public_data).unwrap();
 
         let mut f0 = File::create(public_data_path)?;
-        f0.write_all(j.as_bytes());
+        f0.write_all(j.as_bytes()).unwrap();
         let mut f1 = File::create(proof_path)?;
-        f1.write_all(hex::encode(proof).as_bytes());
+        f1.write_all(hex::encode(proof.clone()).as_bytes()).unwrap();
 
-        let output = Command::new(zargo_path)
+        let mut cmd = Command::new(zargo_path)
             .arg("verify")
-            .output()
-            .expect("zargo command failed to start");
+            .stdin(std::process::Stdio::piped())
+            .current_dir("/src/42zk")
+            .spawn()
+            .unwrap();
+        cmd.stdin.as_mut().unwrap().write_all(hex::encode(proof).as_bytes());
+        let out = cmd.wait().unwrap();
+        println!("{:?}", out);
 
-        Ok(output.status.success())
+        Ok(out.success())
     }
 }
