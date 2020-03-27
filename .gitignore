@@ -57,3 +57,5 @@ cobertura.xml
 
 # proptest
 **/proptest-regressions
+
+/build

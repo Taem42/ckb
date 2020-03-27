@@ -8,6 +8,7 @@ mod load_script_hash;
 mod load_tx;
 mod load_witness;
 mod utils;
+mod zk42;
 
 pub use self::debugger::Debugger;
 pub use self::load_cell::LoadCell;
@@ -18,6 +19,7 @@ pub use self::load_script::LoadScript;
 pub use self::load_script_hash::LoadScriptHash;
 pub use self::load_tx::LoadTx;
 pub use self::load_witness::LoadWitness;
+pub use self::zk42::Zk42;
 
 use ckb_vm::Error;
 

@@ -2,7 +2,7 @@ use crate::{
     cost_model::{instruction_cycles, transferred_byte_cycles},
     syscalls::{
         Debugger, LoadCell, LoadCellData, LoadHeader, LoadInput, LoadScript, LoadScriptHash,
-        LoadTx, LoadWitness,
+        LoadTx, LoadWitness, Zk42,
     },
     type_id::TypeIdSystemScript,
     DataLoader, ScriptError,
@@ -385,6 +385,7 @@ impl<'a, DL: DataLoader> TransactionScriptsVerifier<'a, DL> {
                 ),
             ),
             Box::new(Debugger::new(current_script_hash, &self.debug_printer)),
+            Box::new(Zk42::new()),
         ]
     }
 
