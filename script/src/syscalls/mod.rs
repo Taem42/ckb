@@ -9,6 +9,7 @@ mod load_tx;
 mod load_witness;
 mod utils;
 mod zk42;
+pub mod zk42_bellmain;
 
 pub use self::debugger::Debugger;
 pub use self::load_cell::LoadCell;

@@ -29,6 +29,11 @@ goblin = "0.1.3"
 ckb-vm-definitions = "0.19.1"
 serde_json = "1.0"
 hex = "0.4"
+argparse = "0.2"
+bellman = "0.6.0"
+pairing = "0.16.0"
+rand = "0.7.3"
+sha2 = "0.8.1"
 
 [dev-dependencies]
 proptest = "0.9"

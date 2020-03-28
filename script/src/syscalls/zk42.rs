@@ -15,6 +15,9 @@ use serde_json;
 use std::fs::File;
 use std::io::Write;
 use std::process::Command;
+use std::io::Read;
+
+use crate::syscalls::zk42_bellmain;
 
 const zk42code: u64 = 42;
 static wd: &str = "/src/42zk/circuits/twin";
@@ -86,20 +89,17 @@ impl<Mac: SupportMachine> Syscalls<Mac> for Zk42 {
             return Ok(false);
         }
 
-        // input_hash_addr output_hash_addr proof proof_size
         let input_hash_addr = machine.registers()[ckb_vm::registers::A0].to_u64();
         let output_hash_addr = machine.registers()[ckb_vm::registers::A1].to_u64();
         let proof_addr = machine.registers()[ckb_vm::registers::A2].to_u64();
         let proof_size = machine.registers()[ckb_vm::registers::A3].to_u64();
 
-        println!("{:?} {:?} {:?} {:?}", input_hash_addr, output_hash_addr, proof_addr, proof_size);
-
         let input_hash = get_arr(machine, input_hash_addr, 32)?;
-        println!("{:?}", input_hash);
+        println!("input_hash  {:?}", hex::encode(input_hash.clone()));
         let output_hash = get_arr(machine, output_hash_addr, 32)?;
-        println!("{:?}", output_hash);
+        println!("output_hash {:?}", hex::encode(output_hash.clone()));
         let proof = get_arr(machine, proof_addr, proof_size)?;
-        println!("{:?}", proof);
+        println!("proof       {:?}", hex::encode(proof.clone()));
 
         let a = hash_to_bits(input_hash);
         let b = hash_to_bits(output_hash);
@@ -122,10 +122,41 @@ impl<Mac: SupportMachine> Syscalls<Mac> for Zk42 {
             .current_dir(wd)
             .spawn()
             .unwrap();
-        cmd.stdin.as_mut().unwrap().write_all(hex::encode(proof).as_bytes());
+        cmd.stdin.as_mut().unwrap().write_all(hex::encode(proof).as_bytes()).unwrap();
         let out = cmd.wait().unwrap();
         println!("{:?}", out);
 
         Ok(out.success())
     }
+
+    // fn ecall(&mut self, machine: &mut Mac) -> Result<bool, VMError> {
+    //     let code = machine.registers()[A7].to_u64();
+    //     if code != zk42code {
+    //         return Ok(false);
+    //     }
+
+    //     let input_hash_addr = machine.registers()[ckb_vm::registers::A0].to_u64();
+    //     let output_hash_addr = machine.registers()[ckb_vm::registers::A1].to_u64();
+    //     let proof_addr = machine.registers()[ckb_vm::registers::A2].to_u64();
+    //     let proof_size = machine.registers()[ckb_vm::registers::A3].to_u64();
+
+    //     let input_hash = get_arr(machine, input_hash_addr, 32)?;
+    //     println!("input_hash  {:?}", hex::encode(input_hash.clone()));
+    //     let output_hash = get_arr(machine, output_hash_addr, 32)?;
+    //     println!("output_hash {:?}", hex::encode(output_hash.clone()));
+    //     let proof = get_arr(machine, proof_addr, proof_size)?;
+    //     println!("proof       {:?}", hex::encode(proof.clone()));
+
+    //     let mut verifying_key: String = String::new();
+    //     File::open(verifying_key_path).unwrap().read_to_string(&mut verifying_key).unwrap();
+    //     let input = zk42_bellmain::Input {
+    //         from_hash: input_hash,
+    //         to_hash: output_hash,
+    //     };
+    //     if zk42_bellmain::verify(&hex::decode(verifying_key).unwrap(), &hex::decode(proof).unwrap(), input) {
+    //         Ok(true)
+    //     } else {
+    //         Ok(false)
+    //     }
+    // }
 }
