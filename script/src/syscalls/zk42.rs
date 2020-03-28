@@ -17,9 +17,10 @@ use std::io::Write;
 use std::process::Command;
 
 const zk42code: u64 = 42;
-static verifying_key_path: &str = "/src/42zk/data/verifying-key.txt";
-static public_data_path: &str = "/src/42zk/data/public-data.json";
-static proof_path: &str = "/src/42zk/data/proof";
+static wd: &str = "/src/42zk/circuits/twin";
+static verifying_key_path: &str = "/src/42zk/circuits/twin/data/verifying-key.txt";
+static public_data_path: &str = "/src/42zk/circuits/twin/data/public-data.json";
+static proof_path: &str = "/src/42zk/circuits/twin/data/proof";
 static zargo_path: &str = "/root/app/zinc/zargo";
 
 pub fn get_arr<Mac: ckb_vm::SupportMachine>(
@@ -118,7 +119,7 @@ impl<Mac: SupportMachine> Syscalls<Mac> for Zk42 {
         let mut cmd = Command::new(zargo_path)
             .arg("verify")
             .stdin(std::process::Stdio::piped())
-            .current_dir("/src/42zk")
+            .current_dir(wd)
             .spawn()
             .unwrap();
         cmd.stdin.as_mut().unwrap().write_all(hex::encode(proof).as_bytes());
