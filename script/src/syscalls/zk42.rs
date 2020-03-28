@@ -58,6 +58,7 @@ fn hash_to_bits(h: Vec<u8>) -> Vec<bool> {
         r.push(e & 0b01000000 != 0x00);
         r.push(e & 0b10000000 != 0x00);
     }
+    r.reverse();
     r
 }
 
